@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家长废话观测站 · 智能测算大屏</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --card:rgba(255,255,255,.72);
+    --line:rgba(255,255,255,.92);
+    --text:#1b2338;
+    --muted:#6d7893;
+    --orange:#ff7a45;
+    --pink:#ff5b7f;
+    --cyan:#3aa7ff;
+    --purple:#8b7cf6;
+    --green:#2ec98a;
+    --yellow:#f7b731;
+    --shadow:0 20px 44px rgba(88,104,168,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--text);overflow-x:hidden;
+    background:linear-gradient(150deg,#eef3ff 0%,#f4edfb 42%,#fdf1e9 100%);
+  }
+  .blob{position:fixed;border-radius:50%;filter:blur(76px);opacity:.55;z-index:0;pointer-events:none}
+  .b1{width:420px;height:420px;background:#c9dcff;top:-140px;left:-110px}
+  .b2{width:360px;height:360px;background:#ffd9d0;top:32%;right:-130px}
+  .b3{width:330px;height:330px;background:#e6dcff;bottom:-140px;left:26%}
+
+  .wrap{position:relative;z-index:1;max-width:1480px;margin:0 auto;padding:14px 18px 10px}
+
+  /* ===== 顶栏 ===== */
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,var(--orange),var(--pink));
+    display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 8px 18px rgba(255,91,127,.32)}
+  .brand h1{font-size:17.5px;font-weight:900;letter-spacing:.3px}
+  .brand p{font-size:11px;color:var(--muted);margin-top:1px}
+  .top-actions{display:flex;gap:7px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(16px);color:var(--text);
+    padding:8px 13px;border-radius:12px;font-size:12px;cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 16px rgba(88,104,168,.1);transition:transform .16s,box-shadow .16s;white-space:nowrap}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(88,104,168,.16)}
+  .btn.primary{background:linear-gradient(135deg,#ff7a45,#ff5064);color:#fff;border:none;font-weight:800;
+    box-shadow:0 10px 22px rgba(255,90,100,.3)}
+
+  /* ===== 顶部 Banner ===== */
+  .banner{position:relative;overflow:hidden;border-radius:26px;background:var(--card);backdrop-filter:blur(26px) saturate(1.5);
+    border:1px solid var(--line);box-shadow:var(--shadow);
+    display:grid;grid-template-columns:1.16fr .84fr;min-height:328px;margin-bottom:13px}
+  .banner-text{position:relative;z-index:2;padding:20px 8px 16px 24px;display:flex;flex-direction:column;justify-content:center}
+  .banner-art{position:relative;z-index:1}
+  .banner-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:58% 42%;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 10%,#000 30%);
+    mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 10%,#000 30%)}
+  .bubble{position:absolute;top:14px;right:16px;max-width:250px;background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.9);
+    border-radius:16px;padding:10px 14px;font-size:12px;line-height:1.62;box-shadow:0 14px 30px rgba(88,104,168,.18);z-index:3}
+  .bubble b{color:var(--pink)}
+  .bubble::after{content:"";position:absolute;bottom:-8px;right:44px;border:9px solid transparent;border-top-color:rgba(255,255,255,.96);border-bottom:none}
+  .nameplate{position:absolute;bottom:12px;right:14px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.9);
+    border-radius:12px;padding:7px 12px;font-size:11px;color:var(--muted);z-index:3;box-shadow:0 8px 18px rgba(88,104,168,.14)}
+  .nameplate b{color:var(--text);font-weight:800}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--purple);
+    background:rgba(139,124,246,.13);padding:5px 11px;border-radius:999px;width:fit-content;margin-bottom:10px;font-weight:700}
+  .today-line{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;font-size:21px;font-weight:900;letter-spacing:-.3px}
+  .today-line .pct{font-size:68px;line-height:1;font-weight:900;letter-spacing:-2.5px;
+    background:linear-gradient(120deg,#8b7cf6 0%,#ff5b7f 55%,#ff7a45 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 8px 18px rgba(255,91,127,.24))}
+  .today-line .pct small{font-size:34px;-webkit-text-fill-color:#ff5b7f}
+  .sub-line{margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .sub-line .tag{display:inline-block;background:rgba(255,122,69,.14);color:#e0552a;font-weight:800;
+    padding:2px 8px;border-radius:8px;margin:0 2px}
+  .sub-line b{color:var(--text)}
+
+  .kpis{display:grid;grid-template-columns:.95fr 1.05fr 1.18fr .92fr;gap:9px;margin-top:14px}
+  .kpi{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);border-radius:16px;padding:10px 12px;
+    position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.9) 50%,transparent 70%);
+    transform:translateX(-130%);animation:kpiShine 3.8s ease-in-out infinite;pointer-events:none}
+  .kpi:nth-child(2)::before{animation-delay:.5s}.kpi:nth-child(3)::before{animation-delay:1s}.kpi:nth-child(4)::before{animation-delay:1.5s}
+  @keyframes kpiShine{0%,62%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+  .kpi .k-label{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:4px}
+  .kpi .k-num{font-size:26px;font-weight:900;margin-top:3px;line-height:1.1;letter-spacing:-.5px;
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .kpi .k-num small{font-size:11px;color:var(--muted);font-weight:700;margin-left:2px}
+  .kpi .k-sub{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap}
+  .kpi .k-sub i{font-style:normal;font-weight:800}
+  .kpi.c1 .k-num{color:#3aa7ff}.kpi.c2 .k-num{color:#ff7a45}
+  .kpi.c3 .k-num{color:#f7b731}.kpi.c4 .k-num{color:#ff5b7f}
+  .kpi.pop{animation:kpiPop .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes kpiPop{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+
+  /* ===== 卡片 ===== */
+  .row{display:grid;gap:13px;margin-bottom:13px}
+  .row2{grid-template-columns:1.02fr 1.3fr 1.04fr .9fr}
+  .row3{grid-template-columns:1.26fr 1.06fr .96fr}
+  .card{position:relative;overflow:hidden;background:var(--card);backdrop-filter:blur(24px) saturate(1.5);
+    border:1px solid var(--line);border-radius:20px;padding:13px 15px;box-shadow:var(--shadow)}
+  .card::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.6) 50%,transparent 65%);
+    transform:translateX(-130%) skewX(-8deg);pointer-events:none}
+  .card.in::after{animation:cardSweep 1.1s ease-out .3s forwards}
+  @keyframes cardSweep{to{transform:translateX(130%) skewX(-8deg)}}
+  .card h3{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:5px}
+  .card .desc{font-size:10.5px;color:var(--muted);margin-top:2px;margin-bottom:7px}
+
+  /* 类型分布 */
+  .donut-wrap{display:flex;align-items:center;gap:4px;height:186px}
+  .donut-inner{position:relative;flex:1 1 50%;height:100%;min-width:0}
+  #donut{width:100%;height:100%}
+  .donut-center{position:absolute;left:45%;top:52%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:3}
+  .donut-center .n{font-size:24px;font-weight:900;line-height:1}
+  .donut-center .t{font-size:10px;color:var(--muted);margin-top:2px}
+  .legend{flex:1 1 52%;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .lg-row{display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:5px;font-size:10.5px}
+  .lg-dot{width:8px;height:8px;border-radius:50%}
+  .lg-name{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lg-pct{font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* 词云 */
+  #wordcloud{width:100%;height:186px}
+
+  /* 仪表 */
+  #gauge{width:100%;height:146px}
+  .gauge-foot{display:flex;align-items:center;justify-content:center;margin-top:-6px}
+  .zone-pill{background:rgba(255,91,127,.14);color:#e0385f;font-size:11px;font-weight:800;padding:4px 12px;border-radius:999px}
+  .gauge-scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);padding:0 6px;margin-top:1px}
+
+  /* Top3 */
+  .top3{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:2px}
+  .top3 li{display:grid;grid-template-columns:22px 1fr auto;gap:7px;align-items:center;
+    background:rgba(255,255,255,.5);border-radius:11px;padding:9px 9px}
+  .top3 .no{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:900;color:#fff;background:#ff9a6b}
+  .top3 li:nth-child(1) .no{background:#ff7a45}
+  .top3 li:nth-child(2) .no{background:#8b7cf6}
+  .top3 li:nth-child(3) .no{background:#3aa7ff}
+  .top3 .q{font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top3 .c{font-size:10.5px;color:var(--muted);font-weight:800;white-space:nowrap}
+
+  .top3-foot{margin-top:auto;font-size:10px;color:var(--muted);text-align:center;padding-top:9px;border-top:1px dashed rgba(120,140,190,.18)}
+
+  /* 趋势 */
+  #trend{width:100%;height:158px}
+
+  /* 时段 */
+  .hours{display:flex;flex-direction:column;gap:8px;margin-top:3px}
+  .hr-row{display:flex;align-items:center;gap:8px}
+  .hr-ico{width:21px;height:21px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;
+    background:rgba(240,243,250,.95);flex:none}
+  .hr-main{flex:1;min-width:0}
+  .hr-lab{font-size:10.5px;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hr-lab span{color:var(--muted)}
+  .hr-track{height:7px;border-radius:999px;background:rgba(120,140,190,.14);overflow:hidden}
+  .hr-fill{height:100%;width:0;border-radius:999px;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
+  .hr-pct{font-size:10.5px;font-weight:900;color:var(--muted);width:32px;text-align:right;flex:none}
+
+  /* 建议 */
+  .advice{display:flex;flex-direction:column;gap:7px;margin-top:2px;padding-bottom:52px}
+  .ad-item{display:flex;gap:6px;font-size:10.8px;line-height:1.55;color:var(--text)}
+  .ad-item .ok{color:var(--green);font-weight:900;flex:none}
+  .adv-kid{position:absolute;right:11px;bottom:9px;width:50px;height:50px;border-radius:13px;overflow:hidden;
+    box-shadow:0 10px 20px rgba(88,104,168,.22);border:2px solid #fff}
+  .adv-kid img{width:100%;height:100%;object-fit:cover;object-position:52% 26%}
+
+  footer{margin-top:2px;text-align:center;font-size:10.5px;color:var(--muted);line-height:1.6}
+
+  .tour-on{box-shadow:0 0 0 2px rgba(255,122,69,.5),0 26px 54px rgba(255,122,69,.2)!important;
+    transition:box-shadow .35s ease,transform .35s ease;transform:translateY(-3px)!important;z-index:2}
+  .banner.tour-on{box-shadow:0 0 0 2px rgba(255,122,69,.45),0 30px 60px rgba(255,122,69,.18)!important}
+
+  /* ===== 飞入 ===== */
+  .reveal{opacity:0;transform:translateY(60px) scale(.92)}
+  .reveal.in{animation:flyIn .9s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes flyIn{
+    0%{opacity:0;transform:translateY(70px) scale(.9) rotate(-.8deg);filter:blur(6px)}
+    60%{opacity:1;filter:blur(0)}
+    100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+  }
+
+  /* ===== 录入台 ===== */
+  .sheet-mask{position:fixed;inset:0;background:rgba(34,44,72,.34);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .28s;z-index:60}
+  .sheet-mask.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-44%) scale(.94);
+    width:min(470px,calc(100vw - 28px));max-height:86vh;overflow-y:auto;
+    background:rgba(255,255,255,.95);backdrop-filter:blur(30px) saturate(1.6);
+    border:1px solid rgba(255,255,255,.92);border-radius:26px;
+    box-shadow:0 34px 80px rgba(60,80,140,.3);opacity:0;pointer-events:none;
+    transition:opacity .3s,transform .42s cubic-bezier(.16,1,.3,1);z-index:61;padding:19px 19px 21px}
+  .sheet.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .sheet::-webkit-scrollbar{width:0}
+  .sh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:13px}
+  .sh-head h3{font-size:15px;font-weight:900;line-height:1.35}
+  .sh-head p{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .sh-close{width:28px;height:28px;border-radius:50%;border:none;background:rgba(90,110,170,.1);color:var(--muted);font-size:13px;cursor:pointer;flex:none;line-height:1}
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .mode{border:1px solid rgba(255,255,255,.9);background:rgba(240,243,250,.92);border-radius:14px;
+    padding:10px 5px;font-size:11px;font-family:inherit;color:var(--text);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.3;
+    box-shadow:0 6px 14px rgba(88,104,168,.08);transition:all .2s}
+  .mode b{font-size:16px}
+  .mode.active{background:linear-gradient(160deg,#fff,#fff4ee);border-color:rgba(255,122,69,.55);box-shadow:0 10px 22px rgba(255,122,69,.22)}
+  .mode.active span{color:var(--orange);font-weight:800}
+  .rec-row{display:flex;align-items:center;gap:9px;margin-top:13px;flex-wrap:wrap}
+  .rec-btn{background:linear-gradient(135deg,#ff6b8a,#f0568a);color:#fff;border:none;border-radius:13px;
+    padding:11px 19px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+    box-shadow:0 10px 22px rgba(240,86,138,.3);transition:all .2s}
+  .rec-btn.on{background:linear-gradient(135deg,#8b7cf6,#6a5ae0);box-shadow:0 10px 22px rgba(124,111,240,.32)}
+  .rec-btn:active{transform:scale(.97)}
+  .spk{font-size:11.5px;color:var(--muted);background:rgba(240,243,250,.92);border-radius:11px;
+    padding:9px 13px;cursor:pointer;user-select:none;transition:all .2s}
+  .spk b{color:var(--purple)}
+  .spk:active{transform:scale(.97)}
+  .transcript{margin-top:11px;width:100%;min-height:130px;max-height:190px;resize:vertical;
+    border:1.5px dashed rgba(120,140,190,.35);border-radius:15px;background:rgba(250,251,255,.92);
+    padding:11px 13px;font-size:12px;line-height:1.7;font-family:inherit;color:var(--text);outline:none;transition:all .2s}
+  .transcript:focus{border-color:rgba(255,122,69,.5);box-shadow:0 0 0 3px rgba(255,122,69,.1)}
+  .transcript::placeholder{color:#aeb8cc}
+  .live-tail{font-size:11px;color:var(--purple);margin-top:5px;min-height:14px;line-height:1.5}
+  .sh-hint{font-size:10.5px;color:var(--muted);margin-top:9px;line-height:1.6}
+  .report-btn{width:100%;margin-top:13px;background:linear-gradient(135deg,#ff7a45,#ff5064);color:#fff;
+    border:none;border-radius:15px;padding:14px;font-size:14.5px;font-weight:900;cursor:pointer;
+    font-family:inherit;box-shadow:0 14px 30px rgba(255,90,100,.32);transition:all .2s}
+  .report-btn:active{transform:scale(.98)}
+
+  .voice-dock{position:fixed;right:18px;bottom:18px;display:flex;align-items:center;gap:9px;
+    max-width:min(400px,calc(100vw - 30px));background:rgba(27,35,56,.92);color:#fff;
+    padding:10px 14px;border-radius:14px;font-size:11.5px;line-height:1.5;
+    opacity:0;transform:translateY(14px);transition:.3s;pointer-events:none;z-index:70;
+    box-shadow:0 16px 34px rgba(20,30,60,.28)}
+  .voice-dock.show{opacity:1;transform:translateY(0)}
+  .vd-bars{display:flex;align-items:flex-end;gap:2px;height:15px;flex:none}
+  .vd-bars i{width:2.5px;height:5px;background:#ffb08a;border-radius:2px;animation:eq .85s ease-in-out infinite}
+  .vd-bars i:nth-child(2){animation-delay:.14s}.vd-bars i:nth-child(3){animation-delay:.28s}
+  .vd-bars i:nth-child(4){animation-delay:.42s}.vd-bars i:nth-child(5){animation-delay:.56s}
+  @keyframes eq{0%,100%{height:5px;opacity:.6}50%{height:15px;opacity:1}}
+  .btn.speaking{background:linear-gradient(135deg,#ff7a45,#ff5064);color:#fff;border:none;font-weight:800}
+
+  .rec-timer{font-variant-numeric:tabular-nums;font-weight:900;font-size:12.5px;color:#e0385f;min-width:46px;text-align:center}
+  #wave{width:100%;height:46px;display:block;margin-top:11px;border-radius:13px;
+    background:rgba(240,243,250,.85);border:1px solid rgba(255,255,255,.9)}
+  .audio-box{display:none;align-items:center;gap:9px;margin-top:9px;background:rgba(240,243,250,.9);border-radius:13px;padding:8px 10px}
+  .play-btn{width:30px;height:30px;border-radius:50%;border:none;background:#fff;color:#ff5064;
+    font-size:12px;cursor:pointer;flex:none;box-shadow:0 4px 10px rgba(88,104,168,.16);font-family:inherit;line-height:1}
+  .audio-info{flex:1;min-width:0}
+  .audio-title{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .audio-meta{font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dl{font-size:10.5px;color:var(--purple);font-weight:700;flex:none;text-decoration:none}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#1b2338;color:#fff;
+    padding:10px 15px;border-radius:11px;font-size:12px;opacity:0;transition:.3s;z-index:99;max-width:80vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:1120px){
+    .banner{grid-template-columns:1fr}
+    .banner-art{height:230px}
+    .row2{grid-template-columns:1fr 1fr}
+    .row3{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:620px){
+    .wrap{padding:11px}
+    .row2{grid-template-columns:1fr}
+    .today-line{font-size:16px}
+    .today-line .pct{font-size:42px}
+    .banner-text{padding:16px}
+    .kpi .k-num{font-size:22px}
+  }
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+<div class="wrap">
+
+  <!-- ===== 顶栏 ===== -->
+  <header class="top">
+    <div class="brand">
+      <div class="logo">📣</div>
+      <div>
+        <h1>家长废话观测站 · 智能测算大屏</h1>
+        <p>让家长的「经典语录」被科学看见</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" data-open="live">🎙 语音转写</button>
+      <button class="btn" data-open="upload">⬆ 上传录音</button>
+      <button class="btn" id="voiceBtn" title="重播语音讲解">🔊 语音讲解</button>
+      <button class="btn" id="shareBtn">🔗 分享报告</button>
+      <button class="btn primary" id="startBtn">● 开始测算</button>
+    </div>
+  </header>
+
+  <!-- ===== Banner ===== -->
+  <section class="banner reveal" id="bBanner">
+    <div class="banner-text">
+      <span class="eyebrow">🧪 今日观测结论</span>
+      <div class="today-line">今日家长废话浓度：<span class="pct" id="todayPct"><span id="todayNum">0</span><small>%</small></span></div>
+      <div class="sub-line">处于<span class="tag" id="zoneTag">高发区间</span>！主要特征：<b id="featureText">重复强调、横向比较、情绪施压</b>。</div>
+
+      <div class="kpis">
+        <div class="kpi c1">
+          <div class="k-label">💬 观测语句</div>
+          <div class="k-num"><span id="kpi1v">0</span><small>句</small></div>
+          <div class="k-sub" id="kpi1s"><i>↓ 较昨日 -6%</i></div>
+        </div>
+        <div class="kpi c2">
+          <div class="k-label">📄 废话语句</div>
+          <div class="k-num"><span id="kpi2v">0</span><small>句</small></div>
+          <div class="k-sub" id="kpi2s">占比 <i>76%</i></div>
+        </div>
+        <div class="kpi c3">
+          <div class="k-label">⏱ 唠叨时长</div>
+          <div class="k-num" id="kpi3v">0分0秒</div>
+          <div class="k-sub" id="kpi3s"><i>↑ 较昨日 +12%</i></div>
+        </div>
+        <div class="kpi c4">
+          <div class="k-label">🔁 重复次数</div>
+          <div class="k-num"><span id="kpi4v">0</span><small>次</small></div>
+          <div class="k-sub" id="kpi4s">最高：同一句 × <i>6</i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="banner-art">
+      <img src="assets/kid-desk.png" alt="废话测算员小测">
+      <div class="bubble" id="speechBubble">又来了！这句「你看看人家」的熟悉配方…<br>废话浓度已飙升至 <b>87%</b>！😏</div>
+      <div class="nameplate"><b>测算员 · 小测</b><br>家长表达分析专家</div>
+    </div>
+  </section>
+
+  <!-- ===== 第二行 ===== -->
+  <section class="row row2">
+    <div class="card reveal" id="cDonut">
+      <h3>🍩 废话类型分布</h3>
+      <div class="desc">按语义特征自动归类</div>
+      <div class="donut-wrap">
+        <div class="donut-inner">
+          <div id="donut"></div>
+          <div class="donut-center"><div class="n" id="donutNum">97</div><div class="t">句（废话）</div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="card reveal" id="cCloud">
+      <h3>☁️ 高频废话词云</h3>
+      <div class="desc">字号越大 = 出现次数越多</div>
+      <div id="wordcloud"></div>
+    </div>
+
+    <div class="card reveal" id="cGauge">
+      <h3>⚡ 废话浓度仪表</h3>
+      <div class="desc">0–100% 浓度刻度</div>
+      <div id="gauge"></div>
+      <div class="gauge-foot"><span class="zone-pill" id="gaugeZone">高发区间</span></div>
+      <div class="gauge-scale"><span>0%</span><span>100%</span></div>
+    </div>
+
+    <div class="card reveal" id="cTop3" style="display:flex;flex-direction:column">
+      <h3>👑 今日经典语录 Top3</h3>
+      <div class="desc">出现次数最多的三句</div>
+      <ul class="top3" id="top3"></ul>
+      <div class="top3-foot" id="top3Foot">三句合计 28 次 · 占废话语句 29%</div>
+    </div>
+  </section>
+
+  <!-- ===== 第三行 ===== -->
+  <section class="row row3">
+    <div class="card reveal" id="cTrend">
+      <h3>📈 近 7 天废话浓度趋势</h3>
+      <div class="desc">折线为每日平均浓度</div>
+      <div id="trend"></div>
+    </div>
+
+    <div class="card reveal" id="cHours">
+      <h3>🕒 不同时段的废话浓度</h3>
+      <div class="desc">按辅导场景统计</div>
+      <div class="hours" id="hours"></div>
+    </div>
+
+    <div class="card reveal" id="cAdvice" style="position:relative">
+      <h3>💡 小测的分析与建议</h3>
+      <div class="desc">基于今日废话类型自动生成</div>
+      <div class="advice" id="advice"></div>
+      <div class="adv-kid">
+        <img src="assets/kid-desk.png" alt="小测">
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer">
+    示例数据 · 用于产品原型演示；实际上线需接入语音转写（ASR）与语义分类服务。录音可来自实时转写、微信 / WPS 录音或本页上传。
+  </footer>
+</div>
+
+<!-- ===== 录入台 ===== -->
+<div class="sheet-mask" id="sheetMask"></div>
+<section class="sheet" id="recorderSheet" aria-hidden="true">
+  <div class="sh-head">
+    <div>
+      <h3>🎙 辅导作业废话浓度监测</h3>
+      <p>说到哪句开始崩 · 录音 / 上传 / 粘贴都能出战报</p>
+    </div>
+    <button class="sh-close" id="sheetClose" aria-label="关闭">✕</button>
+  </div>
+
+  <div class="modes" id="modes">
+    <button class="mode active" data-mode="live"><b>🎙</b><span>实时录音转写</span></button>
+    <button class="mode" data-mode="upload"><b>📁</b><span>上传已录音频</span></button>
+    <button class="mode" data-mode="paste"><b>📋</b><span>粘贴对话文本</span></button>
+  </div>
+
+  <div class="rec-row">
+    <button class="rec-btn" id="recBtn">● 开始录音</button>
+    <div class="rec-timer" id="recTimer">00:00</div>
+    <div class="spk" id="spk">说话人：<b>家长</b>（点此切换）</div>
+  </div>
+
+  <canvas id="wave"></canvas>
+
+  <div class="audio-box" id="audioBox">
+    <button class="play-btn" id="playBtn" aria-label="播放">▶</button>
+    <div class="audio-info">
+      <div class="audio-title" id="audioTitle">录音</div>
+      <div class="audio-meta" id="audioMeta">—</div>
+    </div>
+    <a class="dl" id="audioDl" download>下载</a>
+  </div>
+  <audio id="player" preload="metadata"></audio>
+
+  <textarea class="transcript" id="transcript" placeholder="录音时会自动转写；也可以直接粘贴（每句一行，写成 家长：… / 孩子：… 更好分析）"></textarea>
+  <div class="live-tail" id="liveTail"></div>
+
+  <div class="sh-hint" id="shHint">录音与音频都在本机处理，不上传服务器。上传支持 mp3 / m4a / wav / webm / ogg；转写需要浏览器语音识别（Chrome、Edge 或手机 Chrome 最稳），不支持的设备可直接粘贴文字。</div>
+
+  <button class="report-btn" id="reportBtn">🔥 生成战报</button>
+</section>
+
+<div class="voice-dock" id="voiceDock">
+  <span class="vd-bars"><i></i><i></i><i></i><i></i><i></i></span>
+  <span id="vdText">小测正在播报…</span>
+</div>
+<input type="file" id="fileInput" accept="audio/*,text/*,.txt" hidden>
+<div class="toast" id="toast"></div>
+
+<script src="https://fastly.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://fastly.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<script>
+(function(){
+  var PAL=['#ff7a45','#3aa7ff','#f7b731','#8b7cf6','#2ec98a','#ff5b7f','#5ec8e8','#c3a6ff'];
+  var charts=[],chartRefs={},synth=window.speechSynthesis||null,voice=null;
+  var speaking=false,muted=false,segIdx=0,segments=[];
+
+  function toast(msg){
+    var t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show');},2600);
+  }
+
+  /* ---------- 数字滚动 ---------- */
+  function countUp(el,target,dec,dur){
+    if(!el)return;
+    if(dec===undefined||dec===null)dec=0;
+    dur=dur||1500;
+    var start=null;
+    function fmt(v){return dec>0?v.toFixed(dec):Math.round(v).toLocaleString('en-US');}
+    function step(ts){
+      if(!start)start=ts;
+      var p=Math.min(1,(ts-start)/dur);
+      var ease=1-Math.pow(1-p,4);
+      el.textContent=fmt(target*ease);
+      if(p<1){requestAnimationFrame(step);}
+      else{
+        el.textContent=fmt(target);
+        var k=el.closest('.kpi');
+        if(k){k.classList.add('pop');setTimeout(function(){k.classList.remove('pop');},620);}
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- 飞入 ---------- */
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting){
+        var d=parseFloat(en.target.getAttribute('data-delay')||'0');
+        en.target.style.animationDelay=d+'s';
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  },{threshold:.06});
+  Array.prototype.forEach.call(document.querySelectorAll('.reveal'),function(el,i){
+    el.setAttribute('data-delay',(i*0.06).toFixed(2));
+    io.observe(el);
+  });
+
+  /* ---------- 语音 ---------- */
+  function pickVoice(){
+    if(!synth)return;
+    var vs=synth.getVoices()||[];
+    voice=vs.filter(function(v){return /zh[-_]?CN|Chinese|普通话/i.test(v.lang||'');})[0]||vs[0]||null;
+  }
+  if(synth){pickVoice();synth.onvoiceschanged=pickVoice;}
+
+  function showBubble(t){
+    var b=document.getElementById('speechBubble');
+    if(!b)return;
+    b.innerHTML=t;
+  }
+  var dockEl=null,dockTextEl=null,lastBrief=null,lastSegs=null,needRetry=false;
+
+  function dockShow(txt){
+    if(!dockEl){dockEl=document.getElementById('voiceDock');dockTextEl=document.getElementById('vdText');}
+    if(!dockEl)return;
+    dockEl.classList.add('show');
+    if(txt!==undefined&&dockTextEl){dockTextEl.textContent=txt;}
+  }
+  function dockHide(){
+    if(!dockEl)dockEl=document.getElementById('voiceDock');
+    if(dockEl)dockEl.classList.remove('show');
+  }
+  function markVoiceBtn(on){
+    var b=document.getElementById('voiceBtn');
+    if(b){b.classList.toggle('speaking',!!on);}
+  }
+  function stopSpeak(){
+    muted=true;speaking=false;segIdx=0;
+    stopTour();
+    markVoiceBtn(false);dockHide();
+    if(synth){try{synth.cancel();}catch(e){}}
+  }
+  function speakSegments(list,onDone,label){
+    lastSegs=list;
+    if(!synth){dockShow('当前浏览器不支持语音播报，可直接看屏幕上的数据');setTimeout(dockHide,3200);return;}
+    if(muted)return;
+    segments=list;segIdx=0;speaking=true;lastBrief=label||lastBrief;
+    markVoiceBtn(true);
+    dockShow((label?('🎙 '+label+'：'):'')+list[0]);
+    (function next(){
+      if(muted||segIdx>=segments.length){
+        speaking=false;markVoiceBtn(false);
+        setTimeout(dockHide,700);
+        if(onDone){onDone();}
+        return;
+      }
+      var txt=segments[segIdx];
+      var u=new SpeechSynthesisUtterance(txt);
+      u.lang='zh-CN';u.rate=1.06;u.pitch=1.2;
+      if(voice){u.voice=voice;}
+      var started=false;
+      u.onstart=function(){started=true;speaking=true;markVoiceBtn(true);dockShow(txt);};
+      u.onend=function(){segIdx++;next();};
+      u.onerror=function(){setTimeout(function(){segIdx++;next();},950);};
+      try{synth.speak(u);}catch(e){segIdx++;next();}
+      setTimeout(function(){
+        if(!muted&&synth&&!started){
+          if(synth.paused){try{synth.resume();}catch(e){}}
+          if(!synth.speaking){
+            markVoiceBtn(false);
+            needRetry=true;
+            var noVoice=(synth.getVoices()||[]).length===0;
+            dockShow('🔇 '+txt);
+            if(!window._noVoiceToast){
+              window._noVoiceToast=true;
+              toast(noVoice?'此设备暂无中文语音包，已切换为字幕播报':'语音被浏览器拦住，点任意处或「🔊 语音讲解」即可出声');
+            }
+            setTimeout(function(){if(!speaking)dockHide();},5200);
+          }
+        }
+      },1100);
+    })();
+  }
+  function unlockSpeech(){
+    if(!synth)return;
+    try{
+      var u=new SpeechSynthesisUtterance(' ');
+      u.volume=0;u.lang='zh-CN';
+      synth.speak(u);
+    }catch(e){}
+    document.removeEventListener('pointerdown',unlockSpeech);
+    speechBlocked=false;
+    if(needRetry&&lastSegs&&lastSegs.length){
+      needRetry=false;
+      if(sheetEl&&sheetEl.classList.contains('show'))return;
+      muted=false;segIdx=0;
+      setTimeout(function(){speakSegments(lastSegs,null,lastBrief);},260);
+    }
+  }
+  document.addEventListener('pointerdown',unlockSpeech);
+
+
+  /* ---------- 语音导览 ---------- */
+  var tourOn=false,tourSteps=[],tourIdx=0,guardT=null,nextT=null,lastTour=null,pendingTour=null,speechBlocked=false;
+
+  function clearFocus(){
+    Array.prototype.forEach.call(document.querySelectorAll('.tour-on'),function(el){el.classList.remove('tour-on');});
+  }
+  function focusOn(id){
+    clearFocus();
+    var el=id?document.getElementById(id):null;
+    if(!el)return;
+    el.classList.add('tour-on');
+    if(window.innerWidth<980){try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+  }
+  function stopTour(){
+    tourOn=false;
+    if(guardT){clearTimeout(guardT);guardT=null;}
+    if(nextT){clearTimeout(nextT);nextT=null;}
+    clearFocus();
+  }
+  function stepDone(){
+    if(guardT){clearTimeout(guardT);guardT=null;}
+    if(!tourOn)return;
+    tourIdx++;
+    nextT=setTimeout(nextStep,320);
+  }
+  function nextStep(){
+    if(!tourOn)return;
+    if(tourIdx>=tourSteps.length){
+      tourOn=false;clearFocus();markVoiceBtn(false);
+      setTimeout(dockHide,900);return;
+    }
+    var st=tourSteps[tourIdx];
+    focusOn(st.el);
+    showBubble(st.text);
+    dockShow('🎙 '+st.text);
+    markVoiceBtn(true);
+    if(!synth||speechBlocked){
+      guardT=setTimeout(stepDone,Math.max(2400,st.text.length*240));
+      return;
+    }
+    var u=new SpeechSynthesisUtterance(st.text);
+    u.lang='zh-CN';u.rate=1.05;u.pitch=1.2;
+    if(voice){u.voice=voice;}
+    var ended=false;
+    function fin(){if(ended)return;ended=true;stepDone();}
+    u.onend=fin;
+    u.onerror=function(){
+      speechBlocked=true;
+      setTimeout(fin,Math.max(1600,st.text.length*180));
+    };
+    try{synth.speak(u);}catch(e){fin();return;}
+    guardT=setTimeout(fin,Math.max(3000,st.text.length*330));
+  }
+  function startTour(steps){
+    if(!steps||!steps.length)return;
+    if(synth){try{synth.cancel();}catch(e){}}
+    muted=false;segIdx=0;needRetry=false;
+    stopTour();
+    tourOn=true;tourSteps=steps;tourIdx=0;lastTour=steps;
+    nextStep();
+  }
+
+  function defaultTour(){
+    return [
+      {el:'bBanner',text:'先别急着辅导作业，给我四十秒。'},
+      {el:'bBanner',text:'今日浓度 76%，四句里三句在绕弯。'},
+      {el:'cDonut',text:'最狠的是横向比较，占 28%。'},
+      {el:'cCloud',text:'最大的三个词：你就不能、都几点了、你看看人家。'},
+      {el:'cGauge',text:'76%，离爆表只差 9 个点。'},
+      {el:'cHours',text:'写作业时段 81%，全天最高。'},
+      {el:'cTrend',text:'七天从 52 涨到 76，今天最失控。'},
+      {el:'cAdvice',text:'把「你看看人家」换成「我们看看这一步」。'}
+    ];
+  }
+  function buildReportTour(r){
+    var top=r.words&&r.words.length?r.words[0].name:'（没抓到明显口头禅）';
+    var c0=r.cats&&r.cats.length?r.cats[0]:{name:'无明显废话',value:0};
+    return [
+      {el:'bBanner',text:'战报出来了：浓度 '+r.ratio+'%，'+r.zone+'。'},
+      {el:'cDonut',text:'最费口舌的是「'+c0.name+'」，占 '+c0.value+'%。'},
+      {el:'cCloud',text:'出现最多的是「'+top+'」。'},
+      {el:'cTop3',text:'今日金句第一名：'+top+'。'},
+      {el:'cHours',text:'写作业时段，浓度永远是全天最高的。'},
+      {el:'cAdvice',text:'小测建议：同一句话，只说一遍。'}
+    ];
+  }
+
+  /* ---------- 初始数据 ---------- */
+  var DONUT=[{name:'横向比较',value:28},{name:'重复唠叨',value:24},{name:'情绪施压',value:18},
+             {name:'翻旧账',value:12},{name:'过度担忧',value:10},{name:'其它',value:8}];
+  var WORDS=[['你就不能',96],['都几点了',90],['你看看人家',86],['我当年',80],['早知道',74],
+             ['学习要自觉',70],['考不上怎么办',66],['别玩手机',62],['我的错',58],['这点小事',54],
+             ['怎么又',50],['我说了多少遍',46],['不许顶嘴',42],['我都是为了你',39],['你自己看着办',36],
+             ['别磨蹭',33],['跟你爸一样',30],['我不指望你了',27],['再玩就废了',24],['作业写了吗',21],
+             ['哭什么哭',18],['你同学都',16],['长大你就懂了',14]].map(function(d,i){
+               return {name:d[0],value:d[1],textStyle:{color:PAL[i%PAL.length]}};});
+  var DAYS=['周一','周二','周三','周四','周五','周六','周日'];
+  var TREND=[52,48,62,73,68,71,76];
+  var HOURS=[
+    {ico:'🌅',name:'早晨',sub:'起床 / 上学',pct:62,color:'#3aa7ff'},
+    {ico:'🎒',name:'放学后',sub:'作业 / 学习',pct:81,color:'#ff7a45'},
+    {ico:'🍚',name:'晚餐时',sub:'生活习惯',pct:68,color:'#f7b731'},
+    {ico:'🌙',name:'睡前',sub:'总结 / 叮嘱',pct:73,color:'#8b7cf6'}
+  ];
+
+  function renderLegend(data){
+    var box=document.getElementById('legend');
+    box.innerHTML=data.map(function(d,i){
+      return '<div class="lg-row"><span class="lg-dot" style="background:'+PAL[i%PAL.length]+'"></span>'+
+        '<span class="lg-name">'+d.name+'</span><span class="lg-pct">'+d.value+'%</span></div>';
+    }).join('');
+  }
+  function renderTop3(list){
+    var box=document.getElementById('top3');
+    box.innerHTML=list.slice(0,3).map(function(t,i){
+      return '<li><span class="no">'+(i+1)+'</span><span class="q">'+t.name+'</span><span class="c">'+t.count+' 次</span></li>';
+    }).join('');
+  }
+  function renderHours(list){
+    var box=document.getElementById('hours');
+    box.innerHTML=list.map(function(h){
+      return '<div class="hr-row">'+
+        '<div class="hr-ico">'+h.ico+'</div>'+
+        '<div class="hr-main"><div class="hr-lab">'+h.name+' <span>（'+h.sub+'）</span></div>'+
+        '<div class="hr-track"><div class="hr-fill" data-w="'+h.pct+'" style="background:linear-gradient(90deg,'+h.color+'aa,'+h.color+')"></div></div></div>'+
+        '<div class="hr-pct">'+h.pct+'%</div></div>';
+    }).join('');
+    setTimeout(function(){
+      Array.prototype.forEach.call(box.querySelectorAll('.hr-fill'),function(f,i){
+        setTimeout(function(){f.style.width=f.getAttribute('data-w')+'%';},i*130);
+      });
+    },350);
+  }
+  function renderAdvice(items){
+    var box=document.getElementById('advice');
+    box.innerHTML=items.map(function(t){return '<div class="ad-item"><span class="ok">✓</span><span>'+t+'</span></div>';}).join('');
+  }
+
+  /* ---------- 图表初始化 ---------- */
+  function initCharts(){
+    if(typeof echarts==='undefined'){
+      ['donut','wordcloud','gauge','trend'].forEach(function(id){
+        document.getElementById(id).innerHTML='<div style="padding:30px;text-align:center;color:#6d7893;font-size:12px">图表库加载失败，请检查网络后刷新</div>';
+      });
+      return;
+    }
+    var axis={color:'#6d7893',fontSize:10};
+
+    var donut=echarts.init(document.getElementById('donut'));
+    donut.setOption({
+      color:PAL,
+      tooltip:{confine:true,trigger:'item',formatter:function(p){return p.name+'：'+p.value+'%';}},
+      series:[{type:'pie',radius:['52%','78%'],center:['45%','52%'],startAngle:110,
+        itemStyle:{borderColor:'#fff',borderWidth:3,borderRadius:8},
+        label:{show:false},labelLine:{show:false},emphasis:{scale:true,scaleSize:5},
+        animationDuration:1100,data:DONUT}]
+    });
+    chartRefs.donut=donut;charts.push(donut);renderLegend(DONUT);
+
+    var wc=echarts.init(document.getElementById('wordcloud'));
+    wc.setOption({
+      tooltip:{confine:true,formatter:function(p){return p.name+'：出现 '+p.value+' 次';}},
+      series:[{type:'wordCloud',shape:'square',width:'98%',height:'98%',left:'center',top:'center',
+        sizeRange:[10,27],rotationRange:[-12,12],rotationStep:6,
+        gridSize:5,drawOutOfBound:false,
+        textStyle:{fontFamily:'PingFang SC,Noto Sans SC,sans-serif',fontWeight:'700'},
+        emphasis:{textShadowBlur:8,textShadowColor:'rgba(255,91,127,.35)'},
+        data:WORDS}]
+    });
+    chartRefs.wc=wc;charts.push(wc);
+
+    var gauge=echarts.init(document.getElementById('gauge'));
+    gauge.setOption({
+      series:[{type:'gauge',min:0,max:100,startAngle:200,endAngle:-16,radius:'104%',center:['50%','84%'],
+        axisLine:{lineStyle:{width:16,color:[[1,'#eef1f8']]}},
+        progress:{show:true,width:16,roundCap:true,
+          itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[
+            {offset:0,color:'#2ec98a'},{offset:.42,color:'#f7b731'},{offset:.72,color:'#ff7a45'},{offset:1,color:'#c15cf5'}]),
+            shadowBlur:10,shadowColor:'rgba(255,122,69,.22)'}},
+        axisTick:{show:false},splitLine:{show:false},axisLabel:{show:false},
+        pointer:{show:false},anchor:{show:false},title:{show:false},
+        detail:{valueAnimation:true,offsetCenter:[0,'-36%'],fontSize:34,fontWeight:900,color:'#1b2338',formatter:'{value}%'},
+        data:[{value:76,name:'废话浓度'}]}]
+    });
+    chartRefs.gauge=gauge;charts.push(gauge);
+
+    var trend=echarts.init(document.getElementById('trend'));
+    trend.setOption({
+      grid:{left:30,right:12,top:24,bottom:20,containLabel:true},
+      tooltip:{confine:true,trigger:'axis',valueFormatter:function(v){return v+'%';}},
+      xAxis:{type:'category',data:DAYS,axisLine:{lineStyle:{color:'#dfe5f2'}},axisLabel:axis},
+      yAxis:{type:'value',min:0,max:100,axisLine:{show:false},splitLine:{lineStyle:{color:'#eff2f8'}},
+        axisLabel:{color:'#6d7893',fontSize:9,formatter:'{value}%'}},
+      series:[{type:'line',data:TREND,smooth:true,symbol:'circle',symbolSize:6,
+        lineStyle:{color:'#8b7cf6',width:2.6},
+        itemStyle:{color:'#8b7cf6',borderColor:'#fff',borderWidth:2},
+        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0,color:'rgba(139,124,246,.34)'},{offset:1,color:'rgba(139,124,246,0)'}])},
+        markPoint:{data:[{name:'峰值',coord:[6,76],value:'76%'}],symbol:'roundRect',symbolSize:[46,22],
+          itemStyle:{color:'#ff5b7f'},label:{color:'#fff',fontSize:10,fontWeight:700}},
+        animationDuration:1200}],
+    });
+    chartRefs.trend=trend;charts.push(trend);
+
+    renderTop3([{name:'你看看人家孩子…',count:12},{name:'我当年在你这个年纪…',count:9},{name:'早知道你就应该…',count:7}]);
+    renderHours(HOURS);
+    renderAdvice([
+      '今日废话主要集中在「横向比较」与「重复唠叨」。',
+      '建议把「你看看人家」替换为「我们看看这一步怎么做？」。',
+      '重复的提醒，收敛成一次清晰、具体的安排。',
+      '减少翻旧账，把注意力放回当下的改进方案。'
+    ]);
+  }
+
+  /* ---------- 录入台 ---------- */
+  var sheetEl=document.getElementById('recorderSheet');
+  var maskEl=document.getElementById('sheetMask');
+  var taEl=document.getElementById('transcript');
+  var liveTailEl=document.getElementById('liveTail');
+  var recBtnEl=document.getElementById('recBtn');
+  var recTimerEl=document.getElementById('recTimer');
+  var spkEl=document.getElementById('spk');
+  var player=document.getElementById('player');
+  var audioBox=document.getElementById('audioBox');
+  var audioTitleEl=document.getElementById('audioTitle');
+  var audioMetaEl=document.getElementById('audioMeta');
+  var playBtn=document.getElementById('playBtn');
+  var audioDl=document.getElementById('audioDl');
+  var waveC=document.getElementById('wave');
+  var wctx=waveC?waveC.getContext('2d'):null;
+
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var recObj=null,recording=false,recFailed=false,speaker='家长';
+  var mediaStream=null,mediaRec=null,recChunks=[],audioCtx=null,analyser=null,rafW=null,timerId=null,t0=0,hist=[];
+  var curAudio={url:null,name:'',dur:0,voiced:0,segs:0};
+
+  /* --- 波形 --- */
+  function fitWave(){
+    if(!waveC)return;
+    var r=waveC.getBoundingClientRect();
+    var dpr=window.devicePixelRatio||1;
+    var w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));
+    if(waveC.width!==w||waveC.height!==h){waveC.width=w;waveC.height=h;}
+  }
+  function drawIdle(){
+    if(!wctx)return;
+    fitWave();
+    var w=waveC.width,h=waveC.height;
+    wctx.clearRect(0,0,w,h);
+    wctx.strokeStyle='rgba(120,140,190,.28)';wctx.lineWidth=1;
+    wctx.beginPath();wctx.moveTo(0,h/2);wctx.lineTo(w,h/2);wctx.stroke();
+  }
+  function drawBars(vals){
+    if(!wctx)return;
+    fitWave();
+    var w=waveC.width,h=waveC.height,i;
+    wctx.clearRect(0,0,w,h);
+    var n=vals.length;if(!n)return;
+    var cw=w/n,bw=Math.max(1,cw*0.52);
+    var g=wctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#ff9a6b');g.addColorStop(.5,'#ff5b8a');g.addColorStop(1,'#8b7cf6');
+    wctx.fillStyle=g;
+    for(i=0;i<n;i++){
+      var v=Math.max(.04,Math.min(1,vals[i]));
+      var bh=v*(h-4);
+      wctx.fillRect(i*cw+cw/2-bw/2,(h-bh)/2,bw,bh);
+    }
+  }
+  function loopWave(){
+    if(!analyser)return;
+    var buf=new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(buf);
+    var peak=0,i,d;
+    for(i=0;i<buf.length;i++){d=Math.abs(buf[i]-128)/128;if(d>peak)peak=d;}
+    hist.push(peak*2.1);
+    if(hist.length>52)hist.shift();
+    drawBars(hist);
+    rafW=requestAnimationFrame(loopWave);
+  }
+  function fmtClock(ms){
+    var s=Math.floor(ms/1000);
+    var m=Math.floor(s/60),ss=s%60;
+    return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+  }
+  function tick(){
+    if(!recTimerEl)return;
+    recTimerEl.textContent=fmtClock(Date.now()-t0);
+  }
+
+  /* --- 音频解码与发声统计 --- */
+  function analyzeBuffer(buf){
+    var data=buf.getChannelData(0),sr=buf.sampleRate;
+    var win=Math.max(1,Math.floor(sr*0.02));
+    var n=Math.floor(data.length/win);
+    var env=[],i,j,sum,v;
+    for(i=0;i<n;i++){
+      sum=0;
+      for(j=0;j<win;j++){v=data[i*win+j]||0;sum+=v*v;}
+      env.push(Math.sqrt(sum/win));
+    }
+    var max=0;
+    for(i=0;i<env.length;i++){if(env[i]>max)max=env[i];}
+    var thr=Math.max(0.035,max*0.24),voiced=0,segs=0,inSeg=false;
+    for(i=0;i<env.length;i++){
+      if(env[i]>thr){voiced++;if(!inSeg){segs++;inSeg=true;}}
+      else{inSeg=false;}
+    }
+    var cols=52,out=[],per=Math.max(1,Math.floor(n/cols));
+    for(i=0;i<cols;i++){
+      var m=0;
+      for(j=i*per;j<Math.min(n,(i+1)*per);j++){if(env[j]>m)m=env[j];}
+      out.push(max?m/max:0);
+    }
+    return {dur:buf.duration||0,voiced:n?voiced/n:0,segs:segs,env:out};
+  }
+
+  function setAudio(url,name,downloadable){
+    curAudio.url=url;curAudio.name=name;
+    curAudio.dur=0;curAudio.voiced=0;curAudio.segs=0;
+    player.src=url;
+    audioBox.style.display='flex';
+    audioTitleEl.textContent=name;
+    audioMetaEl.textContent='解析中…';
+    playBtn.textContent='▶';
+    if(audioDl){
+      if(downloadable){audioDl.href=url;audioDl.download=name;audioDl.style.display='';}
+      else{audioDl.style.display='none';}
+    }
+    var actx=null;
+    function fail(){audioMetaEl.textContent='已载入 · 可直接播放（浏览器不支持解码统计）';drawIdle();}
+    try{
+      actx=new (window.AudioContext||window.webkitAudioContext)();
+      fetch(url).then(function(r){return r.arrayBuffer();}).then(function(ab){
+        actx.decodeAudioData(ab,function(buf){
+          var st=analyzeBuffer(buf);
+          curAudio.dur=st.dur;curAudio.voiced=st.voiced;curAudio.segs=st.segs;
+          audioMetaEl.textContent=st.dur.toFixed(1)+' 秒 · 有效发声 '+Math.round(st.voiced*100)+'% · '+st.segs+' 段';
+          drawBars(st.env);
+          try{actx.close();}catch(e){}
+        },function(){fail();try{actx.close();}catch(e){}});
+      }).catch(function(){fail();try{actx.close();}catch(e){}});
+    }catch(e){fail();}
+  }
+
+  /* --- 语音识别 --- */
+  function startSR(){
+    if(!SR){liveTailEl.textContent='';toast('此浏览器不支持语音转写，录音仍会保存，可粘贴文字');return;}
+    try{recObj=new SR();}catch(err){toast('语音识别初始化失败');return;}
+    recFailed=false;
+    recObj.lang='zh-CN';recObj.continuous=true;recObj.interimResults=true;recObj.maxAlternatives=1;
+    recObj.onresult=function(e){
+      var interim='';
+      for(var i=e.resultIndex;i<e.results.length;i++){
+        var r=e.results[i];
+        if(r.isFinal){
+          var txt=((r[0]&&r[0].transcript)||'').trim();
+          if(txt){appendLine(speaker+'：'+txt);}
+        }else{interim+=((r[0]&&r[0].transcript)||'');}
+      }
+      liveTailEl.textContent=interim?('识别中… '+interim):'';
+    };
+    recObj.onerror=function(e){
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        recFailed=true;
+        liveTailEl.textContent='麦克风/识别权限被拒绝：录音照样会保存，转写可改用粘贴文字';
+      }else if(e.error==='no-speech'){}
+      else if(e.error!=='aborted'){liveTailEl.textContent='识别中断（'+e.error+'），录音仍在进行';}
+    };
+    recObj.onend=function(){
+      if(recording&&!recFailed){try{recObj.start();}catch(err){recFailed=true;}}
+    };
+    try{recObj.start();}catch(err){recFailed=true;}
+  }
+  function stopSR(){
+    if(recObj){try{recObj.stop();}catch(e){}}
+    recObj=null;
+  }
+
+  /* --- 录音 --- */
+  function markRec(on){
+    if(on){recBtnEl.classList.add('on');recBtnEl.textContent='■ 停止录音';}
+    else{recBtnEl.classList.remove('on');recBtnEl.textContent='● 开始录音';}
+  }
+
+  function stopRec(){
+    if(!recording&&!mediaRec)return;
+    recording=false;
+    markRec(false);
+    clearInterval(timerId);timerId=null;
+    if(rafW){cancelAnimationFrame(rafW);rafW=null;}
+    if(mediaRec&&mediaRec.state!=='inactive'){try{mediaRec.stop();}catch(e){}}
+    if(mediaStream){mediaStream.getTracks().forEach(function(t){try{t.stop();}catch(e){}});mediaStream=null;}
+    if(audioCtx){try{audioCtx.close();}catch(e){}audioCtx=null;analyser=null;}
+    stopSR();
+    liveTailEl.textContent='';
+  }
+
+  function startRec(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+      toast('当前浏览器不支持麦克风录音，请用 Chrome / 微信内置浏览器，或改用「上传已录音频」');
+      return;
+    }
+    if(typeof MediaRecorder==='undefined'){
+      toast('当前浏览器不支持录音编码，请改用「上传已录音频」');
+      return;
+    }
+    if(synth&&synth.speaking){stopSpeak();}
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(function(st){
+      mediaStream=st;recording=true;markRec(true);
+      hist=[];t0=Date.now();tick();
+      timerId=setInterval(tick,500);
+      try{
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        analyser=audioCtx.createAnalyser();
+        analyser.fftSize=512;
+        audioCtx.createMediaStreamSource(st).connect(analyser);
+        loopWave();
+      }catch(e){}
+      try{
+        var mime='';
+        if(MediaRecorder.isTypeSupported){
+          if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus')){mime='audio/webm;codecs=opus';}
+          else if(MediaRecorder.isTypeSupported('audio/webm')){mime='audio/webm';}
+          else if(MediaRecorder.isTypeSupported('audio/mp4')){mime='audio/mp4';}
+        }
+        mediaRec=new MediaRecorder(st,mime?{mimeType:mime}:undefined);
+        recChunks=[];
+        mediaRec.ondataavailable=function(e){if(e.data&&e.data.size){recChunks.push(e.data);}};
+        mediaRec.onstop=function(){
+          var blob=new Blob(recChunks,{type:(recChunks[0]&&recChunks[0].type)||mime||'audio/webm'});
+          var ext=(blob.type.indexOf('mp4')>=0)?'m4a':'webm';
+          setAudio(URL.createObjectURL(blob),'本次录音（'+fmtClock(Date.now()-t0)+'）.'+ext,true);
+          toast('录音已生成，可试听 / 下载');
+          mediaRec=null;
+        };
+        mediaRec.start();
+      }catch(e){
+        toast('录音启动失败：'+e.message);
+        stopRec();
+      }
+      startSR();
+    }).catch(function(err){
+      var name=(err&&err.name)||'';
+      if(name==='NotAllowedError'||name==='SecurityError'){
+        toast('麦克风被拒绝：请在浏览器里允许麦克风，或改用「上传已录音频」');
+      }else if(name==='NotFoundError'){
+        toast('没有检测到麦克风，请改用「上传已录音频」');
+      }else{
+        toast('无法开始录音：'+(err&&err.message||name));
+      }
+      recording=false;markRec(false);
+    });
+  }
+
+  recBtnEl.addEventListener('click',function(){
+    if(recording){stopRec();}
+    else{startRec();}
+  });
+
+  playBtn.addEventListener('click',function(){
+    if(!player.src){toast('还没有可播放的录音');return;}
+    if(player.paused){player.play().catch(function(){toast('播放失败，可能是格式不支持');});}
+    else{player.pause();}
+  });
+  player.addEventListener('play',function(){playBtn.textContent='❚❚';});
+  player.addEventListener('pause',function(){playBtn.textContent='▶';});
+  player.addEventListener('ended',function(){playBtn.textContent='▶';});
+
+  /* --- 文件 --- */
+  function isTextFile(f){
+    return /\.(txt|md|csv|log)$/i.test(f.name)||(f.type||'').indexOf('text/')===0;
+  }
+  function appendLine(str){
+    if(!str)return;
+    taEl.value=(taEl.value?taEl.value+'\n':'')+str;
+    taEl.scrollTop=taEl.scrollHeight;
+  }
+  document.getElementById('fileInput').addEventListener('change',function(e){
+    var f=e.target.files&&e.target.files[0];
+    e.target.value='';
+    if(!f)return;
+    if(isTextFile(f)){
+      var rd=new FileReader();
+      rd.onload=function(){
+        var txt=String(rd.result).trim();
+        if(txt){appendLine(txt);toast('已读入文本 '+f.name);}
+        else{toast('这个文本是空的');}
+      };
+      rd.readAsText(f);
+      return;
+    }
+    if((f.type||'').indexOf('audio/')===0||/\.(mp3|m4a|wav|webm|ogg|opus|aac|flac|amr)$/i.test(f.name)){
+      if(f.size>80*1024*1024){toast('文件超过 80MB，建议先裁剪成小段');return;}
+      var url=URL.createObjectURL(f);
+      setAudio(url,f.name,true);
+      toast('已载入音频，正在解析波形与时长');
+      if(!taEl.value.trim()){
+        liveTailEl.textContent='提示：音频已就绪，但没有文字。可点「粘贴对话文本」补充，或在 Chrome 里录音实时转写。';
+      }
+      return;
+    }
+    toast('只支持音频文件（mp3/m4a/wav/webm…）或 .txt 文本');
+  });
+
+  spkEl.addEventListener('click',function(){
+    speaker=(speaker==='家长')?'孩子':'家长';
+    var other=(speaker==='家长')?'孩子':'家长';
+    spkEl.innerHTML='说话人：<b>'+speaker+'</b>（点此切换为'+other+'）';
+  });
+
+  function setMode(m){
+    Array.prototype.forEach.call(document.querySelectorAll('.mode'),function(x){
+      x.classList.toggle('active',x.getAttribute('data-mode')===m);
+    });
+    if(m==='upload'){
+      if(recording){stopRec();}
+      document.getElementById('fileInput').click();
+    }else if(m==='paste'){
+      taEl.focus();
+    }
+  }
+  function openSheet(m){
+    maskEl.classList.add('show');
+    sheetEl.classList.add('show');
+    sheetEl.setAttribute('aria-hidden','false');
+    if(synth&&synth.speaking){stopSpeak();}
+    setTimeout(function(){drawIdle&&drawIdle();},60);
+    if(m){setMode(m);}
+  }
+  function closeSheet(){
+    if(recording){stopRec();}
+    if(player&&!player.paused){try{player.pause();}catch(e){}}
+    maskEl.classList.remove('show');
+    sheetEl.classList.remove('show');
+    sheetEl.setAttribute('aria-hidden','true');
+  }
+  document.getElementById('sheetClose').addEventListener('click',closeSheet);
+  maskEl.addEventListener('click',closeSheet);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeSheet();}});
+  Array.prototype.forEach.call(document.querySelectorAll('.top-actions .btn[data-open]'),function(b){
+    b.addEventListener('click',function(){openSheet(b.getAttribute('data-open'));});
+  });
+  document.getElementById('startBtn').addEventListener('click',function(){openSheet('live');});
+  document.getElementById('voiceBtn').addEventListener('click',function(){
+    unlockSpeech();
+    speechBlocked=false;
+    if(synth){try{synth.cancel();}catch(e){}}
+    muted=false;segIdx=0;
+    startTour(lastTour&&lastTour.length?lastTour:defaultTour());
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.mode'),function(b){
+    b.addEventListener('click',function(){setMode(b.getAttribute('data-mode'));});
+  });
+
+  /* ---------- 废话词库 ---------- */
+  var LEX={
+    '横向比较':['人家孩子','别人家','你看人家','隔壁家','同学都','比不上','你看看别人','人家都','人家的','你同学'],
+    '重复唠叨':['说了多少遍','说多少遍','讲多少遍','跟你说了','再说一遍','听到没有','听见没有','我都说了','说过多少次','又来了'],
+    '情绪施压':['我上班','累死','烦死','气死','崩溃','受气','我容易吗','压力大','受不了','我都是为','养你这么大'],
+    '翻旧账':['上次就','上次你','之前就','早就说过','以前就','上次考试','又这样','老毛病','我当年'],
+    '过度担忧':['以后怎么办','将来','考不上','没出息','以后有你','长大怎么办','一辈子','将来怎么','长大你就'],
+    '冷嘲热讽':['你可真','挺厉害','真行','不错啊','好棒','有本事','真聪明'],
+    '道德绑架':['我都是为了你','为了你','这么辛苦','辛辛苦苦','全指望你','我付出'],
+    '无效催促':['快点','赶紧','马上','别磨蹭','抓紧','磨叽','手脚快点']
+  };
+  var STOPWORDS=['我们','你们','他们','这个','那个','就是','然后','所以','因为','什么','怎么','不是','可以','一个','现在','已经','还是','但是','如果','知道','觉得','时候','东西','问题','事情','一下','这样','那样','其实','而且','或者','还有','没有','自己','爸爸','妈妈','老师','作业','家长','孩子','这么','那么','多少','不会','我就','你怎','我说','我都','你不','我要','你给'];
+  var WEAK='的了是在就都很着过和与把被让给对从而我你他她它这那些么';
+
+  function gradeOf(r){
+    if(r<20)return{grade:'嘴下留情',zone:'低发区间'};
+    if(r<40)return{grade:'基本克制',zone:'正常区间'};
+    if(r<55)return{grade:'开始绕弯',zone:'轻度区间'};
+    if(r<70)return{grade:'绕弯偏多',zone:'中发区间'};
+    if(r<85)return{grade:'废话超标',zone:'高发区间'};
+    return{grade:'离谱级别',zone:'爆表区间'};
+  }
+
+  function topPhrases(text,max){
+    var han=text.replace(/[^\u4e00-\u9fa5]/g,'');
+    var freq={},i,n,g,k;
+    for(n=2;n<=3;n++){
+      for(i=0;i+n<=han.length;i++){
+        g=han.substr(i,n);
+        var bad=false;
+        for(k=0;k<STOPWORDS.length;k++){if(g.indexOf(STOPWORDS[k])>=0){bad=true;break;}}
+        if(!bad){
+          var weak=false;
+          for(k=0;k<WEAK.length;k++){if(g.indexOf(WEAK.charAt(k))>=0){weak=true;break;}}
+          if(!weak){freq[g]=(freq[g]||0)+1;}
+        }
+      }
+    }
+    var arr=[];
+    for(var key in freq){if(freq[key]>=2){arr.push({name:key,value:freq[key]});}}
+    if(arr.length<14){
+      for(var key2 in freq){if(freq[key2]===1&&key2.length>=2){arr.push({name:key2,value:1});}}
+    }
+    arr.sort(function(a,b){return (b.value*Math.min(b.name.length,3))-(a.value*Math.min(a.name.length,3));});
+    var picked=[];
+    for(i=0;i<arr.length;i++){
+      if(picked.length>=max)break;
+      var covered=false;
+      for(k=0;k<picked.length;k++){if(picked[k].name.indexOf(arr[i].name)>=0){covered=true;break;}}
+      if(!covered){picked.push(arr[i]);}
+    }
+    return picked;
+  }
+
+  function analyzeText(text){
+    var body=text.replace(/^(家长|孩子|妈妈|爸爸|我|娃)[：:]\s*/gm,'');
+    var clean=body.replace(/[（(].*?[）)]/g,'');
+    var clauses=clean.split(/[。！？，、；\n\r]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>=3;});
+    var total=clauses.length;
+    var chars=(clean.match(/[\u4e00-\u9fa5]/g)||[]).length;
+    if(total<2||chars<10)return null;
+
+    var hits={},found=[],hitTotal=0,wasteClauses=0;
+    clauses.forEach(function(c){
+      var isWaste=false;
+      for(var cat in LEX){
+        var kws=LEX[cat];
+        for(var j=0;j<kws.length;j++){
+          if(c.indexOf(kws[j])>=0){
+            hits[cat]=(hits[cat]||0)+1;found.push(kws[j]);hitTotal++;isWaste=true;break;
+          }
+        }
+      }
+      if(isWaste){wasteClauses++;}
+    });
+
+    var ratio=Math.round(((wasteClauses+1)/(total+2))*100);
+    if(ratio>97)ratio=97;
+    if(ratio<6)ratio=6;
+    if(chars/total>26&&ratio<60){ratio=Math.min(ratio+8,97);}
+    var g=gradeOf(ratio);
+
+    var topCat='暂未命中典型句式',maxHits=0;
+    for(var c2 in hits){if(hits[c2]>maxHits){maxHits=hits[c2];topCat=c2;}}
+
+    var kMap={};
+    found.forEach(function(w){kMap[w]=(kMap[w]||0)+1;});
+    var kw=Object.keys(kMap).map(function(w){return {name:w,value:kMap[w]};}).sort(function(a,b){return b.value-a.value;});
+
+    var words=[];
+    kw.slice(0,10).forEach(function(w){words.push({name:w.name,value:56+w.value*14,count:w.value});});
+    topPhrases(body,20).forEach(function(p){
+      if(kMap[p.name])return;
+      for(var q=0;q<words.length;q++){if(words[q].name.indexOf(p.name)>=0||p.name.indexOf(words[q].name)>=0){return;}}
+      words.push({name:p.name,value:16+Math.min(p.value,9)*10,count:p.value});
+    });
+    words.sort(function(a,b){return b.value-a.value;});
+    words=words.slice(0,24);
+
+    var cats=Object.keys(hits).map(function(k){return {name:k,value:hits[k]};});
+    cats.sort(function(a,b){return b.value-a.value;});
+    var sum=0;cats.forEach(function(x){sum+=x.value;});
+    var rest=100;
+    cats.forEach(function(x,i){
+      if(i<cats.length-1){x.value=Math.round(x.value/sum*100);rest-=x.value;}
+      else{x.value=Math.max(1,rest);}
+    });
+
+    return{ratio:ratio,grade:g.grade,zone:g.zone,chars:chars,total:total,wasteClauses:wasteClauses,
+      hitTotal:hitTotal,topCat:topCat,cats:cats,words:words,seconds:Math.round(chars/4.2),maxCat:maxHits};
+  }
+
+  function fmtDur(sec){
+    if(sec<60)return sec+'秒';
+    var m=Math.floor(sec/60),s=sec%60;
+    return m+'分'+(s<10?'0':'')+s+'秒';
+  }
+
+  function paint(r){
+    countUp(document.getElementById('todayNum'),r.ratio,0,1400);
+    document.getElementById('zoneTag').textContent=r.zone;
+    document.getElementById('gaugeZone').textContent=r.zone;
+
+    var feat=r.cats.slice(0,3).map(function(c){return c.name;}).join('、')||'暂无';
+    document.getElementById('featureText').textContent=feat;
+
+    if(curAudio.dur>0){r.seconds=Math.round(curAudio.dur);}
+    countUp(document.getElementById('kpi1v'),r.total,0,1200);
+    countUp(document.getElementById('kpi2v'),r.wasteClauses,0,1300);
+    document.getElementById('kpi3v').textContent=fmtDur(r.seconds);
+    countUp(document.getElementById('kpi4v'),r.hitTotal,0,1200);
+
+    document.getElementById('kpi1s').innerHTML='本次战报 · 共 '+r.chars+' 字';
+    document.getElementById('kpi2s').innerHTML='占比 <i>'+r.ratio+'%</i>';
+    document.getElementById('kpi3s').innerHTML=curAudio.dur>0
+      ? ('实测录音 '+curAudio.dur.toFixed(1)+'s · 发声 '+Math.round(curAudio.voiced*100)+'%')
+      : '按 4.2 字/秒 估算';
+    var maxPct=0;
+    r.cats.forEach(function(c){if(c.value>maxPct){maxPct=c.value;}});
+    document.getElementById('kpi4s').innerHTML=r.hitTotal?('最集中的一类占 <i>'+maxPct+'%</i>'):'未检测到重复';
+
+    document.getElementById('donutNum').textContent=r.wasteClauses;
+    var catsData=r.cats.length?r.cats:[{name:'无明显废话',value:100}];
+    if(chartRefs.donut){chartRefs.donut.setOption({series:[{data:catsData}]});}
+    renderLegend(catsData);
+
+    if(chartRefs.wc){
+      chartRefs.wc.setOption({series:[{data:r.words.map(function(w,i){
+        return {name:w.name,value:w.value,textStyle:{color:PAL[i%PAL.length]}};
+      })}]});
+    }
+    if(chartRefs.gauge){chartRefs.gauge.setOption({series:[{data:[{value:r.ratio,name:'废话浓度'}]}]});}
+    if(chartRefs.trend){
+      var arr=TREND.slice();arr[6]=r.ratio;
+      chartRefs.trend.setOption({series:[{data:arr,
+        markPoint:{data:[{name:'本次',coord:[6,r.ratio],value:r.ratio+'%'}],symbol:'roundRect',symbolSize:[46,22],
+          itemStyle:{color:'#ff5b7f'},label:{color:'#fff',fontSize:10,fontWeight:700}}}]});
+    }
+
+    var t3=r.words.slice(0,3).map(function(w){return {name:w.name,count:w.count||1};});
+    renderTop3(t3.length?t3:[{name:'本次未命中典型句式',count:0}]);
+    var s3=0;t3.forEach(function(x){s3+=(x.count||0);});
+    var f3=document.getElementById('top3Foot');
+    if(f3){f3.textContent='三句合计 '+s3+' 次 · 占废话语句 '+(r.wasteClauses?Math.round(s3/r.wasteClauses*100):0)+'%';}
+
+    renderAdvice([
+      r.cats.length?('今日废话主要集中在「'+r.cats[0].name+'」'+(r.cats[1]?'与「'+r.cats[1].name+'」':'')+'。'):'本次没有抓到典型废话句式，保持住。',
+      '把「'+r.topCat+'」式表达，换成一句具体、可执行的请求。',
+      '同一句提醒别超过一遍，说完就给出明确的下一步。',
+      '减少翻旧账与情绪施压，先解决问题，再表达情绪。'
+    ]);
+
+    document.getElementById('footer').textContent='本次战报基于你输入的 '+r.chars+' 字文本生成；近 7 天趋势、时段分布等聚合模块仍为示例数据。';
+
+    showBubble('这次抓到 '+r.hitTotal+' 处废话句式，<br>浓度 <b>'+r.ratio+'%</b>，属于「'+r.grade+'」😏');
+
+    stopSpeak();
+    muted=false;
+    pendingTour=buildReportTour(r);
+  }
+
+  function paintAudioOnly(){
+    if(!curAudio.dur){return;}
+    document.getElementById('kpi3v').textContent=fmtDur(Math.round(curAudio.dur));
+    document.getElementById('kpi3s').innerHTML='实测录音 '+curAudio.dur.toFixed(1)+'s · 发声 '+Math.round(curAudio.voiced*100)+'%';
+    showBubble('这段录音 '+curAudio.dur.toFixed(1)+' 秒，有效发声 '+Math.round(curAudio.voiced*100)+
+      '%，共 '+curAudio.segs+' 段。但没有文字，就<b>测不出废话比</b> 😅 补一段转写再来。');
+    stopSpeak();muted=false;
+    speakSegments(['录音已解析，共'+curAudio.dur.toFixed(1)+'秒，有效发声百分之'+Math.round(curAudio.voiced*100)+'。但要文字转写，才算得出废话浓度。']);
+    toast('录音时长已写入大屏；补上文字就能出完整战报');
+  }
+
+  document.getElementById('reportBtn').addEventListener('click',function(){
+    var text=taEl.value.trim();
+    if(!text){
+      if(curAudio.dur>0){paintAudioOnly();}
+      else{toast('还没有内容，先录几句或粘贴一段对话吧');}
+      return;
+    }
+    if(recording){stopRec();}
+    var r=analyzeText(text);
+    if(!r){toast('内容太短，再多说几句再生成战报吧');return;}
+    paint(r);
+    closeSheet();
+    window.scrollTo({top:0,behavior:'smooth'});
+    toast('战报已生成 · 小测开始讲解');
+    setTimeout(function(){startTour(pendingTour||defaultTour());},700);
+  });
+
+  /* ---------- 分享 ---------- */
+  document.getElementById('shareBtn').addEventListener('click',function(){
+    var txt='【家长废话观测站 · 今日战报】\n'+
+      '废话浓度：'+document.getElementById('todayNum').textContent+'%（'+document.getElementById('zoneTag').textContent+'）\n'+
+      '观测语句：'+document.getElementById('kpi1v').textContent+' 句\n'+
+      '废话语句：'+document.getElementById('kpi2v').textContent+' 句\n'+
+      '唠叨时长：'+document.getElementById('kpi3v').textContent+'\n'+
+      '主要特征：'+document.getElementById('featureText').textContent;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){toast('报告摘要已复制到剪贴板');},
+        function(){toast('复制失败，请手动选择文本');});
+    }else{toast('当前环境不支持自动复制，可截图分享');}
+  });
+
+  /* ---------- 启动 ---------- */
+  function boot(){
+    countUp(document.getElementById('kpi1v'),128,0,1500);
+    countUp(document.getElementById('kpi2v'),97,0,1600);
+    countUp(document.getElementById('kpi4v'),25,0,1700);
+    countUp(document.getElementById('todayNum'),76,0,1500);
+    setTimeout(function(){document.getElementById('kpi3v').textContent='18分42秒';},900);
+    setTimeout(initCharts,180);
+    setTimeout(function(){startTour(defaultTour());},2500);
+  }
+  if(document.readyState==='complete'){boot();}
+  else{window.addEventListener('load',boot);}
+  window.addEventListener('resize',function(){charts.forEach(function(c){try{c.resize();}catch(e){}});});
+})();
+</script>
+</body>
+</html>
