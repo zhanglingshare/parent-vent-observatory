@@ -189,6 +189,27 @@
   .ab-item .t{font-size:12px;font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:5px}
   .ab-item .d{font-size:11px;line-height:1.75;color:#4b5673}
   .ab-item .d em{font-style:normal;color:var(--pink);font-weight:700}
+  .play-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .pl-card{background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.92);border-radius:15px;padding:12px 13px;
+    display:flex;flex-direction:column;gap:8px;min-height:132px}
+  .pl-card .t{font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px}
+  .pl-note{font-size:10.5px;color:var(--muted);line-height:1.6}
+  .pl-src{font-size:12.5px;font-weight:800;color:#2c3552}
+  .pl-dst{font-size:11.5px;line-height:1.65;color:#8a4b2e;background:rgba(255,122,69,.1);
+    border-radius:10px;padding:8px 10px;min-height:44px}
+  .pl-dst em{font-style:normal;color:var(--pink);font-weight:800}
+  .pl-badge{display:flex;align-items:center;gap:7px}
+  .pl-badge .rk{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:19px;background:linear-gradient(135deg,#ffe3d3,#ffd0e2);flex:none}
+  .pl-badge .nm{font-size:15px;font-weight:900;color:#b8432f;letter-spacing:.2px}
+  .pl-badge .sub{font-size:10px;color:var(--muted)}
+  .pl-sign{font-size:12px;line-height:1.8;color:#2c3552}
+  .pl-sign b{color:#c0392b}
+  .pl-card .btn{align-self:flex-start;margin-top:auto}
+  .pl-card.pop{animation:kpiPop .5s cubic-bezier(.2,1.6,.4,1)}
+  @media (max-width:1120px){.play-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:620px){.play-grid{grid-template-columns:1fr}}
+
   .about-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
   .ab-note{font-size:11px;color:var(--muted);line-height:1.6}
   .ab-note b{color:var(--orange)}
@@ -451,6 +472,36 @@
       <div class="ab-actions">
         <a class="btn" href="https://github.com/zhanglingshare/parent-vent-observatory" target="_blank" rel="noopener">⭐ GitHub</a>
         <button class="btn" id="replayBtn">🔊 再讲一遍</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="about reveal" id="play">
+    <h2>🎲 玩点别的</h2>
+    <div class="lead">报告看完了？来玩三个小的——<b>翻译、段位、抽签</b>，都不需要联网。</div>
+    <div class="play-grid">
+      <div class="pl-card" id="trCard">
+        <div class="t">👂 孩子耳朵翻译器</div>
+        <div class="pl-src" id="trSrc">「你看看人家孩子」</div>
+        <div class="pl-dst" id="trDst">孩子听到的其实是：<em>「你怎么不换个孩子养？」</em></div>
+        <div class="pl-note">同一句话，进他耳朵会自动变味。</div>
+        <button class="btn" id="trBtn">再翻一句 →</button>
+      </div>
+
+      <div class="pl-card" id="rankCard">
+        <div class="t">🏅 今日废话段位</div>
+        <div class="pl-badge"><div class="rk" id="rankIcon">👑</div>
+          <div><div class="nm" id="rankName">嘴强王者 · 五段</div>
+            <div class="sub" id="rankSub">浓度 76%，离封神只差 9 个点</div></div></div>
+        <div class="pl-note">段位跟着你的战报实时变。浓度越高，段位越离谱。</div>
+        <button class="btn" id="rankBtn">按当前浓度评一次</button>
+      </div>
+
+      <div class="pl-card" id="signCard">
+        <div class="t">🎋 今日一签</div>
+        <div class="pl-sign" id="signText"><b>宜：</b>只说一遍。<br><b>忌：</b>翻旧账。</div>
+        <div class="pl-note">抽一签，管今天这一顿辅导。</div>
+        <button class="btn" id="signBtn">再抽一签</button>
       </div>
     </div>
   </section>
@@ -1207,6 +1258,77 @@
   document.getElementById('replayBtn').addEventListener('click',function(){
     startTour(lastTour&&lastTour.length?lastTour:defaultTour());
   });
+
+  /* ---------- 玩点别的 ---------- */
+  var TR=[
+    ['你看看人家孩子','你怎么不换个孩子养？'],
+    ['我都是为了你','我情绪不好，这笔账记你头上。'],
+    ['都几点了','我现在很焦虑，所以你最好快点。'],
+    ['快点写','我快发火了，你最好立刻完成。'],
+    ['我当年在你这个年纪','我小时候也这样，只是我忘了。'],
+    ['跟你说了多少遍','我说过，但我没确认你听见。'],
+    ['考不上怎么办','我把我的恐惧，交给你保管。'],
+    ['别玩手机了','其实我也不知道该让你干嘛。'],
+    ['学习要自觉','我自己都做不到自律，你试试。'],
+    ['你还顶嘴','我只想赢，不想听你说。'],
+    ['这点小事都做不好','我标准挺高的，但没教过你。'],
+    ['我吃过的盐比你吃过的饭多','我年纪大，所以我对。']
+  ];
+  var trIdx=0;
+  function showTr(i){
+    var d=TR[i];
+    document.getElementById('trSrc').textContent='「'+d[0]+'」';
+    document.getElementById('trDst').innerHTML='孩子听到的其实是：<em>「'+d[1]+'」</em>';
+    var c=document.getElementById('trCard');
+    c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop');
+  }
+  document.getElementById('trBtn').addEventListener('click',function(){
+    trIdx=(trIdx+1)%TR.length;showTr(trIdx);
+  });
+
+  var RANKS=[
+    [20,'🍼','佛系家长 · 一段','几乎没废话，孩子在偷笑'],
+    [40,'🌱','温和派 · 二段','偶尔碎碎念，尚在人间'],
+    [55,'🎈','绕弯学徒 · 三段','开始铺垫，还没上头'],
+    [70,'🥊','唠叨熟手 · 四段','一句顶三句，孩子已走神'],
+    [85,'👑','嘴强王者 · 五段','高发区间，全班家长的代表'],
+    [101,'🔥','封神级 · 嘴替','建议直接开直播，别辅导了']
+  ];
+  function rankOf(v){
+    for(var i=0;i<RANKS.length;i++){if(v<RANKS[i][0])return RANKS[i];}
+    return RANKS[RANKS.length-1];
+  }
+  function applyRank(v){
+    var r=rankOf(v);
+    document.getElementById('rankIcon').textContent=r[1];
+    document.getElementById('rankName').textContent=r[2];
+    var next=null;
+    for(var i=0;i<RANKS.length;i++){if(v<RANKS[i][0]){next=RANKS[i][0];break;}}
+    document.getElementById('rankSub').textContent=next?('浓度 '+v+'%，离「'+RANKS[RANKS.indexOf(r)+1][2].split(' · ')[0]+'」只差 '+(next-v)+' 个点'):('浓度 '+v+'%，已顶格');
+    var c=document.getElementById('rankCard');
+    c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop');
+  }
+  document.getElementById('rankBtn').addEventListener('click',function(){
+    applyRank(parseInt(document.getElementById('todayNum').textContent,10)||76);
+  });
+
+  var SIGNS=[
+    ['只说一遍。','翻旧账。'],
+    ['先问「你卡在哪」。','拿别人家孩子对标。'],
+    ['让孩子自己检查一遍。','用「我都是为了你」结尾。'],
+    ['沉默三秒再开口。','在饭桌上总结他的一天。'],
+    ['夸一句具体的进步。','说「你怎么又」。'],
+    ['把「快点」换成「还有十分钟」。','一口气列五条要求。'],
+    ['陪他坐五分钟。','站在身后盯着写。']
+  ];
+  function drawSign(){
+    var d=SIGNS[Math.floor(Math.random()*SIGNS.length)];
+    document.getElementById('signText').innerHTML='<b>宜：</b>'+d[0]+'<br><b>忌：</b>'+d[1];
+    var c=document.getElementById('signCard');
+    c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop');
+  }
+  document.getElementById('signBtn').addEventListener('click',drawSign);
+  applyRank(76);
   document.getElementById('voiceBtn').addEventListener('click',function(){
     unlockSpeech();
     speechBlocked=false;
@@ -1394,6 +1516,7 @@
 
     showBubble('这次抓到 '+r.hitTotal+' 处废话句式，<br>浓度 <b>'+r.ratio+'%</b>，属于「'+r.grade+'」😏');
 
+    if(typeof applyRank==='function'){applyRank(r.ratio);}
     stopSpeak();
     muted=false;
     pendingTour=buildReportTour(r);
