@@ -180,6 +180,10 @@
   .about h2{font-size:16px;font-weight:900;display:flex;align-items:center;gap:6px}
   .about .lead{font-size:12.5px;color:var(--muted);margin:5px 0 13px;line-height:1.6}
   .about .lead b{color:var(--text)}
+  .ticker{margin:0 0 12px;border-radius:11px;background:rgba(255,122,69,.09);overflow:hidden;padding:7px 0}
+  .tk-track{display:flex;gap:34px;white-space:nowrap;width:max-content;animation:tick 30s linear infinite}
+  .tk-track span{font-size:11px;color:#a4573a;font-weight:600}
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   .about-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
   .ab-item{background:rgba(255,255,255,.55);border-radius:14px;padding:11px 13px;border:1px solid rgba(255,255,255,.9)}
   .ab-item .t{font-size:12px;font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:5px}
@@ -415,6 +419,19 @@
   <section class="about reveal" id="about">
     <h2>🧪 这玩意儿到底是个啥？</h2>
     <div class="lead">一句话：把家长辅导作业时的嘴，做成一张<b>会动、会讲、还会公开处刑</b>的数据大屏。</div>
+    <div class="ticker"><div class="tk-track"><span>🏆「你看看人家」连续 12 天霸榜</span>
+          <span>📈「我当年在你这个年纪」环比上涨 9%</span>
+          <span>🔥「快点」当选年度最高频词汇</span>
+          <span>❤️「我都是为了你」情绪价值拉满</span>
+          <span>⏰ 放学后 17:30–19:00 为高危时段</span>
+          <span>😮‍💨「说了多少遍」今天仍未被听懂</span>
+        <span>🏆「你看看人家」连续 12 天霸榜</span>
+          <span>📈「我当年在你这个年纪」环比上涨 9%</span>
+          <span>🔥「快点」当选年度最高频词汇</span>
+          <span>❤️「我都是为了你」情绪价值拉满</span>
+          <span>⏰ 放学后 17:30–19:00 为高危时段</span>
+          <span>😮‍💨「说了多少遍」今天仍未被听懂</span>
+        </div></div>
     <div class="about-grid">
       <div class="ab-item">
         <div class="t">💡 为什么会有这个</div>
